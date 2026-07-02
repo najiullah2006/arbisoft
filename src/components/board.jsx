@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useCurrentBoard } from '../context/CurrentBoardContext';
+import { useTheme } from '../context/ThemeContext'; // 👈 Import the theme hook
 import List from './list';
 
 const Board = () => {
-  const { boards, board, setCurrentBoardId, createBoard, createList } = useCurrentBoard();
+  const { board, createList } = useCurrentBoard();
+  const { currentBg, setCurrentBg, colors } = useTheme(); // 👈 Destructure theme states
   const [newListTitle, setNewListTitle] = useState('');
-  const [newBoardName, setNewBoardName] = useState('');
-  const [isCreatingBoard, setIsCreatingBoard] = useState(false);
 
   const handleListSubmit = (e) => {
     e.preventDefault();
@@ -15,49 +15,41 @@ const Board = () => {
     setNewListTitle('');
   };
 
-  const handleBoardSubmit = (e) => {
-    e.preventDefault();
-    if (!newBoardName.trim()) return;
-    createBoard(newBoardName);
-    setNewBoardName('');
-    setIsCreatingBoard(false);
-  };
-
   return (
-    <div style={{ padding: '20px', height: '100vh', boxSizing: 'border-box' }}>
-      {/* Board Navigation Toolbar */}
-      <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '15px' }}>
+    <div style={{ 
+      padding: '20px', 
+      height: '100vh', 
+      boxSizing: 'border-box',
+      background: currentBg, // 👈 THE COLOR IS NOW DYNAMIC
+      color: '#fff',
+      transition: 'background 0.3s ease' // Makes color switches smooth
+    }}>
+      
+      {/* Header Toolbar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '15px' }}>
         <h1 style={{ margin: 0, fontSize: '24px' }}>{board.name}</h1>
-        
-        {/* Dropdown to switch boards */}
-        <select 
-          value={board.id} 
-          onChange={(e) => setCurrentBoardId(e.target.value)}
-          style={{ padding: '6px', borderRadius: '4px', background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid #fff' }}
-        >
-          {boards.map(b => (
-            <option key={b.id} value={b.id} style={{ color: '#000' }}>{b.name}</option>
-          ))}
-        </select>
 
-        {/* Create Board Modal Form Toggle */}
-        {isCreatingBoard ? (
-          <form onSubmit={handleBoardSubmit} style={{ display: 'flex', gap: '6px' }}>
-            <input 
-              type="text" 
-              placeholder="New board name..." 
-              value={newBoardName} 
-              onChange={(e) => setNewBoardName(e.target.value)}
-              style={{ padding: '6px', borderRadius: '4px', border: 'none' }}
+        {/* 🎨 Color Scheme Picker Buttons */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <span style={{ fontSize: '13px', fontWeight: '500' }}>Change Background:</span>
+          {Object.entries(colors).map(([key, value]) => (
+            <button
+              key={key}
+              onClick={() => setCurrentBg(value)}
+              style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
+                background: value,
+                border: currentBg === value ? '2px solid #fff' : '1px solid rgba(0,0,0,0.2)',
+                cursor: 'pointer',
+                transform: currentBg === value ? 'scale(1.1)' : 'scale(1)',
+                transition: 'transform 0.1s'
+              }}
+              title={key}
             />
-            <button type="submit" style={{ background: '#61bd4f', border: 'none', color: '#fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}>Create</button>
-            <button type="button" onClick={() => setIsCreatingBoard(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>✕</button>
-          </form>
-        ) : (
-          <button onClick={() => setIsCreatingBoard(true)} style={{ background: 'rgba(255,255,255,0.3)', border: 'none', color: '#fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}>
-            + New Board
-          </button>
-        )}
+          ))}
+        </div>
       </div>
 
       {/* Main Grid View of Columns */}
@@ -66,7 +58,7 @@ const Board = () => {
           <List key={list.id} list={list} />
         ))}
 
-        {/* Spec: Inline Form to Create List */}
+        {/* Add list form wrapper */}
         <div style={{ background: 'rgba(255,255,255,0.2)', width: '272px', padding: '12px', borderRadius: '12px' }}>
           <form onSubmit={handleListSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <input 
@@ -74,13 +66,8 @@ const Board = () => {
               placeholder="+ Add another list..." 
               value={newListTitle}
               onChange={(e) => setNewListTitle(e.target.value)}
-              style={{ padding: '8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.9)' , color: '#333', fontSize: '14px' }}
+              style={{ padding: '8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.9)', color: '#000' }}
             />
-            {newListTitle.trim() && (
-              <button type="submit" style={{ background: '#61bd4f', color: '#fff', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                Add List
-              </button>
-            )}
           </form>
         </div>
       </div>
