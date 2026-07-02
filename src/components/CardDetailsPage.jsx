@@ -1,0 +1,33 @@
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useCurrentBoard } from '../context/CurrentBoardContext';
+
+const CardDetailsPage = () => {
+  const { boardId, cardId } = useParams();
+  const navigate = useNavigate();
+  const { board } = useCurrentBoard();
+
+  const currentCard = board.lists
+    .flatMap(l => l.cards)
+    .find(c => c.id === cardId);
+
+  if (!currentCard) return null;
+
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+      background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+    }}>
+      <div style={{ background: '#fff', color: '#000', padding: '24px', borderRadius: '12px', width: '450px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+          <h2 style={{ margin: 0 }}>📋 {currentCard.title}</h2>
+          <button onClick={() => navigate(`/boards/${boardId}`)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+        </div>
+        <p style={{ color: '#666', fontSize: '14px' }}>Card ID: <code>{cardId}</code></p>
+        <p style={{ marginTop: '20px', color: '#444' }}>This is your dedicated modal space for card details.</p>
+      </div>
+    </div>
+  );
+};
+
+export default CardDetailsPage;
