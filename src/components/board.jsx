@@ -74,7 +74,7 @@ const Board = () => {
               placeholder="+ Add another list..." 
               value={newListTitle}
               onChange={(e) => setNewListTitle(e.target.value)}
-              style={{ padding: '8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.9)' }}
+              style={{ padding: '8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.9)' , color: '#333', fontSize: '14px' }}
             />
             {newListTitle.trim() && (
               <button type="submit" style={{ background: '#61bd4f', color: '#fff', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
