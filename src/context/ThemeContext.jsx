@@ -9,6 +9,7 @@ export const ThemeProvider = ({ children }) => {
     charcoal: '#1d2125',
     sunsetOrange: '#d29034',
     forestGreen: '#519872',
+    Red: '#eb5a46',
   };
 
   const [currentBg, setCurrentBg] = useState(colors.trelloBlue);

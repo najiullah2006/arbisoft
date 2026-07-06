@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState } from 'react';
 
 const UserContext = createContext();
 
+// The UserProvider component wraps its children with the UserContext.Provider,
+// providing the user state to all components that consume this context.
+
 export const UserProvider = ({ children }) => {
   // Hardcoded profile details to meet the spec
   const [user] = useState({
