@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useCurrentBoard } from '../context/CurrentBoardContext';
-import { useTheme } from '../context/ThemeContext'; // 👈 Import the theme hook
+import { useCurrentBoard } from '../context/CurrentBoardContext'; //uses the file currentBoardContext to get the current board. 
+import { useTheme } from '../context/ThemeContext'; // import the theme hook
 import List from './list';
 
 const Board = () => {
   const { board, createList } = useCurrentBoard();
-  const { currentBg, setCurrentBg, colors } = useTheme(); // 👈 Destructure theme states
+  const { currentBg, setCurrentBg, colors } = useTheme(); // Destructure theme states
   const [newListTitle, setNewListTitle] = useState('');
 
   const handleListSubmit = (e) => {
@@ -20,7 +20,7 @@ const Board = () => {
       padding: '20px', 
       height: '100vh', 
       boxSizing: 'border-box',
-      background: currentBg, // 👈 THE COLOR IS NOW DYNAMIC
+      background: currentBg, // THE COLOR IS NOW DYNAMIC
       color: '#fff',
       transition: 'background 0.3s ease' // Makes color switches smooth
     }}>
