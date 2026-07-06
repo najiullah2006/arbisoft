@@ -2,10 +2,15 @@ import React, { useState } from 'react';
 import Card from './card';
 import { useCurrentBoard } from '../context/CurrentBoardContext';
 
+
+// The List component represents a single list within a board. 
+// It displays the list's title, all its cards, and provides functionality to add new cards to the list.
+
 const List = ({ list }) => {
   const { createCard } = useCurrentBoard();
-  const [isAddingCard, setIsAddingCard] = useState(false);
-  const [cardTitle, setCardTitle] = useState('');
+  const [isAddingCard, setIsAddingCard] = useState(false); //manages the visibilty of the card creation form.
+  const [cardTitle, setCardTitle] = useState(''); // temp place to hold title 
+   // State to manage the visibility of the card creation form and the title of the new card being added.
 
   const handleAddCardSubmit = (e) => {
     e.preventDefault();
@@ -13,6 +18,8 @@ const List = ({ list }) => {
     createCard(list.id, cardTitle);
     setCardTitle('');
     setIsAddingCard(false);
+    // Handles the submission of the new card form. It prevents the default form submission behavior, 
+    // checks if the title is not empty, creates a new card, resets the title input, and hides the form.
   };
 
   return (
