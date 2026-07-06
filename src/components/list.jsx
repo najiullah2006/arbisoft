@@ -63,6 +63,9 @@ const List = ({ list }) => {
         >
           + Add a card
         </button>
+        // When the "Add a card" button is clicked, it toggles the visibility of the card creation form. 
+        // The form allows users to input a title for the new card and submit it. 
+        // If the form is not visible, the button is displayed instead.
       )}
     </div>
   );
