@@ -5,7 +5,7 @@ import { ThemeProvider } from './context/ThemeContext'; // 👈 1. IMPORT IT HER
 import { UserProvider } from './context/UserContext';
 import BoardListingPage from './components/BoardListingPage';
 import Board from './components/board';
-import CardDetailsPage from './components/CardDetailsPage';
+// import CardDetailsPage from './components/CardDetailsPage';
 
 function App() {
   return (
@@ -23,7 +23,7 @@ function App() {
               {/* Route: Board Details page */}
               <Route path="/boards/:boardId" element={<Board />} >
                 {/* Nested Route: Card Details modal */}
-                <Route path="card/:cardId" element={<CardDetailsPage />} />
+                {/* <Route path="card/:cardId" element={<CardDetailsPage />} /> */}
               </Route>
             </Routes>
           </BrowserRouter>
