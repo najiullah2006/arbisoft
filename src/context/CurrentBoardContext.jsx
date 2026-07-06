@@ -7,14 +7,17 @@ export const CurrentBoardProvider = ({ children }) => {
   const [boards, setBoards] = useState([
     {
       id: 'b1',
-      name: 'My Trello Board',
+      name: 'Najiullah\'s Board',
       lists: [
-        { id: 'l1', title: 'To Do', cards: [{ id: 'c1', title: 'Setup architecture' }] },
-        { id: 'l2', title: 'In Progress', cards: [{ id: 'c2', title: 'Building UI components' }] }
+        { id: 'l1', title: 'To Do', cards: [{ id: 'c1', title: 'Cook food' }] },
+        { id: 'l2', title: 'In Progress', cards: [{ id: 'c2', title: 'Clean Room' }] },
+        { id: 'l3', title: 'Done', cards: [{ id: 'c3', title: 'Read a book' }] }
+        // already added cards. 
+
       ]
     }
   ]);
-  const [currentBoardId, setCurrentBoardId] = useState('b1');
+  const [currentBoardId, setCurrentBoardId] = useState('b1'); 
 
   // Find the active board object
   const currentBoard = boards.find(b => b.id === currentBoardId) || boards[0];
@@ -25,8 +28,9 @@ export const CurrentBoardProvider = ({ children }) => {
       id: `b_${Date.now()}`,
       name: boardName,
       lists: []
+      // Create a new board object with a unique id, the provided name, and an empty list of lists.
     };
-    setBoards([...boards, newBoard]);
+    setBoards([...boards, newBoard]); // Add the new board to the list of boards
     setCurrentBoardId(newBoard.id); // Switch automatically to the new board
   };
 
@@ -40,10 +44,12 @@ export const CurrentBoardProvider = ({ children }) => {
         };
       }
       return b;
+      // This function adds a new list to the current board. It creates a new list object with a unique id, the provided title, 
+      // and an empty array of cards. The state is updated immutably by mapping over the existing boards and updating only the current board.
     }));
   };
 
-  // Spec: Create Card
+  // Spec: Create Card check the board, then the list and then card add kardo
   const createCard = (listId, cardTitle) => {
     setBoards(prevBoards => prevBoards.map(b => {
       if (b.id === currentBoardId) {
@@ -100,7 +106,8 @@ export const CurrentBoardProvider = ({ children }) => {
       moveCard 
     }}>
       {children}
-    </CurrentBoardContext.Provider>
+    </CurrentBoardContext.Provider> 
+    // The provider makes the current board state and functions available to any component that consumes this context.
   );
 };
 
