@@ -23,7 +23,7 @@ function App() {
           <BrowserRouter> 
             <Routes>
               {/* Redirect home traffic to /boards */}
-              <Route path="/" element={<Navigate to="/boards" replace />} />
+              <Route path="/" element={<Navigate to="/boards/b1" replace />} />
               
               {/* Route: Board Listing page */}
               {/* <Route path="/boards" element={<BoardListingPage />} / to be used later> */}
