@@ -1,3 +1,8 @@
+// This file has been commented out because the BoardListingPage component is not currently in use.
+// It was intended to provide a listing of all boards for the user, 
+// but it has been disabled for now. The code remains here for future reference or potential reactivation.
+
+
 // import React from 'react';
 // import { useNavigate } from 'react-router-dom';
 // import { useCurrentBoard } from '../context/CurrentBoardContext';

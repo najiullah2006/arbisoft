@@ -1,3 +1,8 @@
+//This file has been commented out because the CardDetailsPage component is not currently in use. 
+// It was intended to provide a modal view for detailed information about a specific card within a board, 
+// but it has been disabled for now. but the code remains here for future reference or potential reactivation.
+
+
 // import React from 'react';
 // import { useParams, useNavigate } from 'react-router-dom';
 // import { useCurrentBoard } from '../context/CurrentBoardContext';
