@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { createCard } from '../store/boardSlice';
-import Card from './card'; // Make sure this path matches your card component exactly
+import { createCard, deleteList } from '../store/boardSlice'; // 👈 Import deleteList
+import Card from './card'; 
 
 const List = ({ list }) => {
   const dispatch = useDispatch();
@@ -11,9 +11,15 @@ const List = ({ list }) => {
     e.preventDefault();
     if (!cardTitle.trim()) return;
 
-    // Dispatching directly to your new RTK slice reducer action
     dispatch(createCard({ listId: list.id, title: cardTitle.trim() }));
     setCardTitle('');
+  };
+
+  // 👈 Handle deleting the entire column list
+  const handleDeleteList = () => {
+    if (window.confirm(`Are you sure you want to delete the "${list.title}" list?`)) {
+      dispatch(deleteList({ listId: list.id }));
+    }
   };
 
   return (
@@ -21,6 +27,15 @@ const List = ({ list }) => {
       {/* List Title Header */}
       <div className="flex items-center justify-between px-1">
         <h3 className="text-sm font-semibold text-[#172b4d]">{list.title}</h3>
+        
+        {/* ✕ Delete List Button */}
+        <button 
+          onClick={handleDeleteList}
+          className="text-gray-400 hover:text-red-600 font-medium text-xs p-1 rounded-md hover:bg-gray-200/50 transition-colors cursor-pointer"
+          title="Delete list"
+        >
+          ✕
+        </button>
       </div>
 
       {/* Cards Stack Rendering Area */}
