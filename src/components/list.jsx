@@ -2,15 +2,10 @@ import React, { useState } from 'react';
 import Card from './card';
 import { useCurrentBoard } from '../context/CurrentBoardContext';
 
-
-// The List component represents a single list within a board. 
-// It displays the list's title, all its cards, and provides functionality to add new cards to the list.
-
 const List = ({ list }) => {
   const { createCard } = useCurrentBoard();
-  const [isAddingCard, setIsAddingCard] = useState(false); //manages the visibilty of the card creation form.
-  const [cardTitle, setCardTitle] = useState(''); // temp place to hold title 
-   // State to manage the visibility of the card creation form and the title of the new card being added.
+  const [isAddingCard, setIsAddingCard] = useState(false); 
+  const [cardTitle, setCardTitle] = useState(''); 
 
   const handleAddCardSubmit = (e) => {
     e.preventDefault();
@@ -18,54 +13,51 @@ const List = ({ list }) => {
     createCard(list.id, cardTitle);
     setCardTitle('');
     setIsAddingCard(false);
-    // Handles the submission of the new card form. It prevents the default form submission behavior, 
-    // checks if the title is not empty, creates a new card, resets the title input, and hides the form.
   };
 
   return (
-    <div style={{
-      background: '#f1f2f4',
-      width: '272px',
-      padding: '12px',
-      borderRadius: '12px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px'
-    }}>
-      <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 'bold', color: '#172b4d' }}>{list.title}</h3>
+    <div className="bg-[#f1f2f4] w-68 p-3 rounded-xl flex flex-col gap-2 shrink-0 max-h-[85vh] overflow-y-auto">
+      <h3 className="text-sm font-bold text-[#172b4d] px-1">{list.title}</h3>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {list.cards.map(card => (
+      <div className="flex flex-col gap-2">
+        {list.cards?.map(card => (
           <Card key={card.id} card={card} listId={list.id} />
         ))}
       </div>
 
-      {/* Conditional Rendering Form for creating cards */}
       {isAddingCard ? (
-        <form onSubmit={handleAddCardSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <form onSubmit={handleAddCardSubmit} className="flex flex-col gap-1.5 mt-1">
           <input 
             type="text" 
             placeholder="Card title..."
             value={cardTitle}
             onChange={(e) => setCardTitle(e.target.value)}
             autoFocus
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px' }}
+            className="p-2 rounded-md border border-solid border-gray-300 text-sm focus:outline-none w-full bg-white shadow-sm text-gray-900"
           />
-          <div style={{ display: 'flex', gap: '4px' }}>
-            <button type="submit" style={{ background: '#0079bf', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}>Add</button>
-            <button type="button" onClick={() => setIsAddingCard(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#333' }}>✕</button>
+          <div className="flex items-center gap-1.5">
+            <button 
+              type="submit" 
+              className="bg-[#0079bf] text-white text-sm py-1.5 px-3 rounded cursor-pointer font-medium hover:bg-[#026aa7] transition-colors"
+            >
+              Add card
+            </button>
+            <button 
+              type="button" 
+              onClick={() => setIsAddingCard(false)} 
+              className="text-[#333] hover:bg-gray-200 p-1.5 rounded transition-colors text-sm cursor-pointer"
+            >
+              ✕
+            </button>
           </div>
         </form>
       ) : (
         <button 
           onClick={() => setIsAddingCard(true)}
-          style={{ background: 'none', border: 'none', color: '#5e6c84', textAlign: 'left', padding: '6px', cursor: 'pointer', borderRadius: '6px' }}
+          className="bg-transparent text-[#5e6c84] text-sm text-left p-2 rounded-md hover:bg-gray-200 hover:text-[#172b4d] transition-colors w-full mt-1 font-medium cursor-pointer"
         >
           + Add a card
         </button>
-        // When the "Add a card" button is clicked, it toggles the visibility of the card creation form. 
-        // The form allows users to input a title for the new card and submit it. 
-        // If the form is not visible, the button is displayed instead.
       )}
     </div>
   );
