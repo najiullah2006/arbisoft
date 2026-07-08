@@ -1,64 +1,53 @@
 import React, { useState } from 'react';
-import Card from './card';
-import { useCurrentBoard } from '../context/CurrentBoardContext';
+import { useDispatch } from 'react-redux';
+import { createCard } from '../store/boardSlice';
+import Card from './card'; // Make sure this path matches your card component exactly
 
 const List = ({ list }) => {
-  const { createCard } = useCurrentBoard();
-  const [isAddingCard, setIsAddingCard] = useState(false); 
-  const [cardTitle, setCardTitle] = useState(''); 
+  const dispatch = useDispatch();
+  const [cardTitle, setCardTitle] = useState('');
 
-  const handleAddCardSubmit = (e) => {
+  const handleAddCard = (e) => {
     e.preventDefault();
     if (!cardTitle.trim()) return;
-    createCard(list.id, cardTitle);
+
+    // Dispatching directly to your new RTK slice reducer action
+    dispatch(createCard({ listId: list.id, title: cardTitle.trim() }));
     setCardTitle('');
-    setIsAddingCard(false);
   };
 
   return (
-    <div className="bg-[#f1f2f4] w-68 p-3 rounded-xl flex flex-col gap-2 shrink-0 max-h-[85vh] overflow-y-auto">
-      <h3 className="text-sm font-bold text-[#172b4d] px-1">{list.title}</h3>
-      
+    <div className="bg-[#f1f2f4] w-72 rounded-xl p-3 flex flex-col gap-3 shrink-0 max-h-[80vh] overflow-y-auto shadow-sm">
+      {/* List Title Header */}
+      <div className="flex items-center justify-between px-1">
+        <h3 className="text-sm font-semibold text-[#172b4d]">{list.title}</h3>
+      </div>
+
+      {/* Cards Stack Rendering Area */}
       <div className="flex flex-col gap-2">
-        {list.cards?.map(card => (
+        {(list.cards || []).map((card) => (
           <Card key={card.id} card={card} listId={list.id} />
         ))}
       </div>
 
-      {isAddingCard ? (
-        <form onSubmit={handleAddCardSubmit} className="flex flex-col gap-1.5 mt-1">
-          <input 
-            type="text" 
-            placeholder="Card title..."
-            value={cardTitle}
-            onChange={(e) => setCardTitle(e.target.value)}
-            autoFocus
-            className="p-2 rounded-md border border-solid border-gray-300 text-sm focus:outline-none w-full bg-white shadow-sm text-gray-900"
-          />
-          <div className="flex items-center gap-1.5">
-            <button 
-              type="submit" 
-              className="bg-[#0079bf] text-white text-sm py-1.5 px-3 rounded cursor-pointer font-medium hover:bg-[#026aa7] transition-colors"
-            >
-              Add card
-            </button>
-            <button 
-              type="button" 
-              onClick={() => setIsAddingCard(false)} 
-              className="text-[#333] hover:bg-gray-200 p-1.5 rounded transition-colors text-sm cursor-pointer"
-            >
-              ✕
-            </button>
-          </div>
-        </form>
-      ) : (
-        <button 
-          onClick={() => setIsAddingCard(true)}
-          className="bg-transparent text-[#5e6c84] text-sm text-left p-2 rounded-md hover:bg-gray-200 hover:text-[#172b4d] transition-colors w-full mt-1 font-medium cursor-pointer"
-        >
-          + Add a card
-        </button>
-      )}
+      {/* Form Submission UI to add a new card item */}
+      <form onSubmit={handleAddCard} className="flex flex-col gap-2 mt-1">
+        <input
+          type="text"
+          placeholder="+ Add a card title..."
+          value={cardTitle}
+          onChange={(e) => setCardTitle(e.target.value)}
+          className="w-full p-2 bg-white rounded-lg border border-solid border-gray-200 text-xs text-gray-900 focus:outline-none focus:border-blue-500 shadow-xs"
+        />
+        {cardTitle.trim() && (
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 rounded-lg text-xs self-start transition-colors cursor-pointer"
+          >
+            Add Card
+          </button>
+        )}
+      </form>
     </div>
   );
 };
