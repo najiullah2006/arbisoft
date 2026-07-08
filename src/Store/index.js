@@ -1,8 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
-import boardReducer from './boardSlice';
+import boardReducer from './boardSlice'; // Make sure this path points right to your slice file!
 
 export const store = configureStore({
   reducer: {
-    workspace: boardReducer
+    // This key MUST match the state selector you use in your components (state.workspace)
+    workspace: boardReducer 
   }
 });
