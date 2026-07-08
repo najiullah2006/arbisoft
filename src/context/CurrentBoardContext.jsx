@@ -7,7 +7,7 @@ export const CurrentBoardProvider = ({ children }) => {
   const [boards, setBoards] = useState([
     {
       id: 'b1',
-      name: 'Najiullah\'s Board',
+      name: "Najiullah's Board",
       lists: [
         { id: 'l1', title: 'To Do', cards: [{ id: 'c1', title: 'Cook food' }] },
         { id: 'l2', title: 'In Progress', cards: [{ id: 'c2', title: 'Clean Room' }] },
@@ -95,6 +95,31 @@ export const CurrentBoardProvider = ({ children }) => {
     }));
   };
 
+  
+  // Spec: Delete Card
+  const deleteCard = (listId, cardId) => {
+  setBoards(prevBoards => {
+    // Loop through your boards array to find the one containing our elements
+    return prevBoards.map(board => {
+      return {
+        ...board,
+        // Map through the lists inside this board
+        lists: board.lists.map(list => {
+          // If this is the list containing the card, filter it out
+          if (list.id === listId) {
+            return {
+              ...list,
+              cards: list.cards.filter(card => card.id !== cardId)
+            };
+          }
+          // Leave all other lists completely untouched
+          return list;
+        })
+      };
+    });
+  });
+};
+
   return (
     <CurrentBoardContext.Provider value={{ 
       boards, 
@@ -103,7 +128,8 @@ export const CurrentBoardProvider = ({ children }) => {
       createBoard, 
       createList, 
       createCard, 
-      moveCard 
+      moveCard,
+      deleteCard
     }}>
       {children}
     </CurrentBoardContext.Provider> 
