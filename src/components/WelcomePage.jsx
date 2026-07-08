@@ -1,46 +1,57 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form'; 
 import { initializeUserWorkspace } from '../store/boardSlice';
 
 const WelcomePage = () => {
-  const [name, setName] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!name.trim()) return;
+  // Initialize react-hook-form with error tracking configuration
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
-    // Send the name to Redux to build your dynamic board title
-    dispatch(initializeUserWorkspace({ name: name.trim() }));
-    
-    // Redirect instantly to your board layout
+  const handleJoinWorkspace = (data) => {
+    dispatch(initializeUserWorkspace({ name: data.username.trim() }));
     navigate('/boards/b1');
   };
 
   return (
-    <div className="min-h-screen bg-[#1a1b23] flex flex-col items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full flex flex-col gap-6 text-center">
-        <div>
-          <h1 className="text-3xl font-extrabold text-[#172b4d] tracking-tight">Welcome to Trello</h1>
-          <p className="text-sm text-gray-500 mt-2">Enter your name to initialize your personal workspace</p>
-        </div>
+    <div className="min-h-screen bg-[#1a1b23] flex flex-col items-center justify-center text-white p-4">
+      <div className="w-full max-w-md bg-white/5 p-8 rounded-2xl border border-solid border-gray-800 shadow-xl backdrop-blur-xs">
+        <h1 className="text-3xl font-extrabold text-center mb-2 tracking-tight">
+          Welcome to Trello Boards
+        </h1>
+        <p className="text-gray-400 text-sm text-center mb-8">
+          Your personal workspace for organizing tasks and projects. Please enter your name to get started.
+        </p>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="e.g. Najiullah"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full p-3 rounded-xl border border-solid border-gray-300 text-sm focus:outline-none focus:border-blue-500 bg-gray-50 text-gray-900 font-medium transition-colors"
-            autoFocus
-          />
+        <form onSubmit={handleSubmit(handleJoinWorkspace)} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              Your Name
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., John Doe"
+              className={`w-full p-3 bg-white rounded-xl border text-sm text-gray-900 focus:outline-none ${
+                errors.username ? 'border-red-500 focus:border-red-500' : 'border-solid border-gray-300 focus:border-blue-500'
+              }`}
+              {...register("username", { 
+                required: "Name is required to build a workspace board",
+                minLength: { value: 2, message: "Name must be at least 2 characters long" }
+              })}
+            />
+            {errors.username && (
+              <span className="text-red-400 text-xs px-1 mt-0.5">{errors.username.message}</span>
+            )}
+          </div>
+
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors cursor-pointer shadow-sm text-sm"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all duration-200 transform active:scale-98 cursor-pointer shadow-md mt-2"
           >
-            Create My Board &rarr;
+            Launch Workspace &rarr;
           </button>
         </form>
       </div>
