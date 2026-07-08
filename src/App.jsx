@@ -1,43 +1,20 @@
-// commented out code will be used later. 
-
-
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { CurrentBoardProvider } from './context/CurrentBoardContext';
-import { ThemeProvider } from './context/ThemeContext'; // 1. IMPORT IT HERE
-import { UserProvider } from './context/UserContext';
-// import BoardListingPage from './components/BoardListingPage'; to be used later. 
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import WelcomePage from './components/WelcomePage';
 import Board from './components/board';
-// import CardDetailsPage from './components/CardDetailsPage'; to be used later.
 
-//this wrapps everything tog. 
-//browser router allows javascript to handle routing in the app and change screens instantly 
-//route is like switch case and renders when same is found.
-//   <Route path="/boards/:boardId" element={<Board />} > takes me to the board page and the nested route is for the card details modal.
-
+// No more context providers needed here since Redux handles the state layer!
 function App() {
   return (
-    <ThemeProvider> {/*2. WRAP EVERYTHING AT THE VERY TOP */}
-      <UserProvider>
-        <CurrentBoardProvider>
-          <BrowserRouter> 
-            <Routes>
-              {/* Redirect home traffic to /boards */}
-              <Route path="/" element={<Navigate to="/boards/b1" replace />} />
-              
-              {/* Route: Board Listing page */}
-              {/* <Route path="/boards" element={<BoardListingPage />} / to be used later> */}
-              
-              {/* Route: Board Details page */}
-              <Route path="/boards/:boardId" element={<Board />} >
-                {/* Nested Route: Card Details modal */}
-                {/* <Route path="card/:cardId" element={<CardDetailsPage />} /> to be used later */}
-              </Route>
-            </Routes>
-          </BrowserRouter>
-        </CurrentBoardProvider>
-      </UserProvider>
-    </ThemeProvider>
+    <BrowserRouter> 
+      <Routes>
+        {/* 1. Base path now loads your input form page instead of auto-redirecting */}
+        <Route path="/" element={<WelcomePage />} />
+        
+        {/* 2. Route: Board Details page that you land on after entering your name */}
+        <Route path="/boards/:boardId" element={<Board />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
