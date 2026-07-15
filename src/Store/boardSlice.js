@@ -54,20 +54,26 @@ export const addListToServer = createAsyncThunk(
   }
 );
 
-// 4. THUNK: Delete a list
+// 4. THUNK: Delete a list safely
 export const deleteListFromServer = createAsyncThunk(
   'board/deleteListFromServer',
   async ({ boardId, listId }, thunkAPI) => {
     try {
+      // 1. Grab the fresh board state from the server
       const { data: board } = await axios.get(`${API_URL}/${boardId}`);
-      // Filter out the selected list
-      const updatedLists = board.lists.filter(list => list.id !== listId);
+      
+      // 2. Filter out the list, converting both IDs to Strings to prevent type mismatches
+      const updatedLists = board.lists.filter(
+        (list) => String(list.id) !== String(listId)
+      );
+      
       const updatedBoard = { ...board, lists: updatedLists };
 
+      // 3. PUT the modified board structure back to the database
       const response = await axios.put(`${API_URL}/${boardId}`, updatedBoard);
       return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue("Failed to delete list.");
+      return thunkAPI.rejectWithValue("Failed to delete list from the server.");
     }
   }
 );
