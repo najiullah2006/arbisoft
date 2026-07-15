@@ -1,0 +1,72 @@
+{
+  "boards": [
+    {
+      "id": "b1",
+      "title": "Work Space",
+      "lists": [
+        {
+          "id": "list-1",
+          "title": "To Do",
+          "cards": [
+            {
+              "id": "card-1",
+              "text": "Set up development environment"
+            },
+            {
+              "id": "card-2",
+              "text": "Test API connections"
+            },
+            {
+              "id": "card-1784104529443",
+              "text": "naji"
+            }
+          ]
+        },
+        {
+          "id": "list-2",
+          "title": "In Progress",
+          "cards": []
+        },
+        {
+          "id": "list-1784104617678",
+          "title": "najitrfhbf",
+          "cards": []
+        }
+      ]
+    },
+    {
+      "id": "FeU61z4aYRo",
+      "title": "najiullah",
+      "lists": [
+        {
+          "id": "list-1784104746330",
+          "title": "naji",
+          "cards": []
+        }
+      ]
+    },
+    {
+      "id": "E2k6rVrivhc",
+      "title": "yo",
+      "lists": [
+        {
+          "id": "list-1784104779719",
+          "title": "was good",
+          "cards": []
+        }
+      ]
+    },
+    {
+      "id": "CCOvyMqXSvQ",
+      "title": "hello",
+      "lists": [
+        {
+          "id": "list-1784105112056",
+          "title": "hai",
+          "cards": []
+        }
+      ]
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
