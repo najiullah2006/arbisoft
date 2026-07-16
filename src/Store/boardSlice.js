@@ -1,116 +1,244 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5000/boards';
+
+// --- ASYNC THUNKS ---
+
+// 1. Fetch ALL boards (for the Welcome Page menu)
+export const fetchAllBoards = createAsyncThunk(
+  'board/fetchAllBoards',
+  async (_, thunkAPI) => {
+    try {
+      const response = await axios.get(API_URL);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Failed to load workspaces.");
+    }
+  }
+);
+
+// 2. Fetch a SINGLE board by ID (for the Workspace board view)
+export const fetchBoardById = createAsyncThunk(
+  'board/fetchBoardById',
+  async (boardId, thunkAPI) => {
+    try {
+      const response = await axios.get(`${API_URL}/${boardId}`);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Board not found.");
+    }
+  }
+);
+
+// 3. Create a NEW board on the server
+export const createBoardOnServer = createAsyncThunk(
+  'board/createBoardOnServer',
+  async (title, thunkAPI) => {
+    try {
+      const newBoard = {
+        title,
+        lists: []
+      };
+      const response = await axios.post(API_URL, newBoard);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Failed to create new board.");
+    }
+  }
+);
+
+// 4. Delete an ENTIRE board workspace from the server
+export const deleteBoardFromServer = createAsyncThunk(
+  'board/deleteBoardFromServer',
+  async (boardId, thunkAPI) => {
+    try {
+      await axios.delete(`${API_URL}/${boardId}`);
+      return boardId; // Return the deleted ID so we can filter it out of Redux state
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Failed to delete the workspace.");
+    }
+  }
+);
+
+// 5. Add a NEW list/column to a board
+export const addListToServer = createAsyncThunk(
+  'board/addListToServer',
+  async ({ boardId, title }, thunkAPI) => {
+    try {
+      const { data: board } = await axios.get(`${API_URL}/${boardId}`);
+      
+      const newList = {
+        id: `list-${Date.now()}`,
+        title,
+        cards: []
+      };
+
+      const updatedBoard = {
+        ...board,
+        lists: [...board.lists, newList]
+      };
+
+      const response = await axios.put(`${API_URL}/${boardId}`, updatedBoard);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Failed to add list to the server.");
+    }
+  }
+);
+
+// 6. Delete an entire list/column safely
+export const deleteListFromServer = createAsyncThunk(
+  'board/deleteListFromServer',
+  async ({ boardId, listId }, thunkAPI) => {
+    try {
+      const { data: board } = await axios.get(`${API_URL}/${boardId}`);
+      
+      const updatedLists = board.lists.filter(
+        (list) => String(list.id) !== String(listId)
+      );
+      
+      const updatedBoard = { ...board, lists: updatedLists };
+
+      const response = await axios.put(`${API_URL}/${boardId}`, updatedBoard);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Failed to delete list from the server.");
+    }
+  }
+);
+
+// 7. Add a card to a specific list
+export const addCardToServer = createAsyncThunk(
+  'board/addCardToServer',
+  async ({ boardId, listId, text }, thunkAPI) => {
+    try {
+      const { data: board } = await axios.get(`${API_URL}/${boardId}`);
+      
+      const updatedLists = board.lists.map(list => {
+        if (String(list.id) === String(listId)) {
+          return {
+            ...list,
+            cards: [...list.cards, { id: `card-${Date.now()}`, text }]
+          };
+        }
+        return list;
+      });
+
+      const updatedBoard = { ...board, lists: updatedLists };
+      const response = await axios.put(`${API_URL}/${boardId}`, updatedBoard);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Failed to add card.");
+    }
+  }
+);
+
+// 8. Delete a card from a specific list
+export const deleteCardFromServer = createAsyncThunk(
+  'board/deleteCardFromServer',
+  async ({ boardId, listId, cardId }, thunkAPI) => {
+    try {
+      const { data: board } = await axios.get(`${API_URL}/${boardId}`);
+      
+      const updatedLists = board.lists.map(list => {
+        if (String(list.id) === String(listId)) {
+          return {
+            ...list,
+            cards: list.cards.filter(card => String(card.id) !== String(cardId))
+          };
+        }
+        return list;
+      });
+
+      const updatedBoard = { ...board, lists: updatedLists };
+      const response = await axios.put(`${API_URL}/${boardId}`, updatedBoard);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Failed to delete card.");
+    }
+  }
+);
+
+// --- SLICE CONFIGURATION ---
 
 const initialState = {
-  userName: '',
-  boards: []
+  boards: [],
+  activeBoard: null,
+  status: 'idle',
+  error: null,
 };
 
 const boardSlice = createSlice({
-  name: 'boards',
+  name: 'workspace',
   initialState,
   reducers: {
-    // Sets up the user profile and hooks up their initial empty workspace layout
-    initializeUserWorkspace: (state, action) => {
-      const { name } = action.payload;
-      state.userName = name;
-      state.boards = [
-        {
-          id: 'b1',
-          title: `${name}'s Board`,
-          lists: [
-            { id: 'l1', title: 'To Do', cards: [] },
-            { id: 'l2', title: 'In Progress', cards: [] },
-            { id: 'l3', title: 'Done', cards: [] }
-          ]
-        }
-      ];
-    },
-
-    // Creates a brand new card inside a targeted column list segment
-    createCard: (state, action) => {
-      const { listId, title } = action.payload;
-      const board = state.boards[0]; // Interacting with our primary workspace board
-      const targetList = board?.lists.find(l => l.id === listId);
-      if (targetList) {
-        targetList.cards.push({
-          id: `c_${Date.now()}`,
-          title
-        });
-      }
-    },
-
-    // Shifts an existing discrete card block across category column arrays
-    moveCard: (state, action) => {
-      const { cardId, sourceListId, targetListId } = action.payload;
-      const board = state.boards[0];
-
-      const sourceList = board?.lists.find(l => l.id === sourceListId);
-      const targetList = board?.lists.find(l => l.id === targetListId);
-
-      if (sourceList && targetList) {
-        const cardIndex = sourceList.cards.findIndex(c => c.id === cardId);
-        if (cardIndex !== -1) {
-          const [cardToMove] = sourceList.cards.splice(cardIndex, 1);
-          targetList.cards.push(cardToMove);
-        }
-      }
-    },
-
-    // Filters out a card entirely from its parent list array sequence
-    deleteCard: (state, action) => {
-      const { listId, cardId } = action.payload;
-      const board = state.boards[0];
-      const targetList = board?.lists.find(l => l.id === listId);
-      if (targetList) {
-        targetList.cards = targetList.cards.filter(c => c.id !== cardId);
-      }
-    },
-
-    // Adds a new list column to the primary workspace board
-    addList: (state, action) => {
-          const title = typeof action.payload === 'string' ? action.payload : action.payload?.title;
-          if (!title) return;
-
-          // If the board array is empty (e.g., due to a code refresh), initialize it inline!
-          if (!state.boards || state.boards.length === 0) {
-            state.boards = [
-              {
-                id: 'b1',
-                title: state.userName ? `${state.userName}'s Board` : "Your Workspace Board",
-                lists: []
-              }
-            ];
-          }
-
-          // Now we can safely append our brand-new list column
-          const board = state.boards[0];
-          if (!board.lists) {
-            board.lists = [];
-          }
-          
-          board.lists.push({
-            id: `l_${Date.now()}`,
-            title: title,
-            cards: []
-          });
-        },
-
-  
-
-  // Safely removes a list column from the primary workspace board
-    deleteList: (state, action) => {
-      const { listId } = action.payload;
-      const board = state.boards[0];
-      
-      if (board && board.lists) {
-        // Filter out the list that matches the passed listId
-        board.lists = board.lists.filter(l => l.id !== listId);
-      }
+    clearActiveBoard: (state) => {
+      state.activeBoard = null;
+      state.status = 'idle';
+      state.error = null;
     }
-},
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch All Boards
+      .addCase(fetchAllBoards.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchAllBoards.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.boards = action.payload;
+      })
+      .addCase(fetchAllBoards.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      
+      // Fetch Single Board
+      .addCase(fetchBoardById.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchBoardById.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.activeBoard = action.payload;
+      })
+      .addCase(fetchBoardById.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
+      // Create Board
+      .addCase(createBoardOnServer.fulfilled, (state, action) => {
+        state.boards.push(action.payload);
+        state.activeBoard = action.payload;
+      })
+
+      // Delete Board (Removes it from the homepage list instantly)
+      .addCase(deleteBoardFromServer.fulfilled, (state, action) => {
+        state.boards = state.boards.filter(
+          (board) => String(board.id) !== String(action.payload)
+        );
+        if (state.activeBoard && String(state.activeBoard.id) === String(action.payload)) {
+          state.activeBoard = null;
+        }
+      })
+
+      // Sync data instantly to UI on nested actions
+      .addCase(addListToServer.fulfilled, (state, action) => {
+        state.activeBoard = action.payload;
+      })
+      .addCase(deleteListFromServer.fulfilled, (state, action) => {
+        state.activeBoard = action.payload;
+      })
+      .addCase(addCardToServer.fulfilled, (state, action) => {
+        state.activeBoard = action.payload;
+      })
+      .addCase(deleteCardFromServer.fulfilled, (state, action) => {
+        state.activeBoard = action.payload;
+      });
+  }
 });
- 
 
-
-export const { initializeUserWorkspace, createCard, moveCard, deleteCard, addList, deleteList } = boardSlice.actions;
+export const { clearActiveBoard } = boardSlice.actions;
 export default boardSlice.reducer;
