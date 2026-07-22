@@ -1,10 +1,4 @@
 {
-  "boards": [
-    {
-      "title": "my first board",
-      "lists": [],
-      "id": "V4IUxDe7Kfs"
-    }
-  ],
+  "boards": [],
   "$schema": "./node_modules/json-server/schema.json"
 }
