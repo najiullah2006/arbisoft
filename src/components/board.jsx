@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  fetchBoardById, 
-  addListToServer, 
-  deleteListFromServer, 
-  addCardToServer, 
-  deleteCardFromServer 
+import {
+  fetchBoardById,
+  addListToServer,
+  deleteListFromServer,
+  addCardToServer,
+  deleteCardFromServer,
+  moveCardOnServer
 } from '../Store/boardSlice';
-import Button from './button'; 
 
 function Board() {
   const { boardId } = useParams();
@@ -16,10 +16,9 @@ function Board() {
 
   const activeBoard = useSelector((state) => state.workspace.activeBoard);
   const status = useSelector((state) => state.workspace.status);
-  const error = useSelector((state) => state.workspace.error);
 
   const [newListTitle, setNewListTitle] = useState('');
-  const [newCardTexts, setNewCardTexts] = useState({});
+  const [cardInputs, setCardInputs] = useState({});
 
   useEffect(() => {
     if (boardId) {
@@ -27,134 +26,166 @@ function Board() {
     }
   }, [dispatch, boardId]);
 
-  const handleAddList = (e) => {
+  const handleAddList = async (e) => {
     e.preventDefault();
     if (!newListTitle.trim()) return;
-    dispatch(addListToServer({ boardId, listTitle: newListTitle }));
+    await dispatch(addListToServer({ boardId, title: newListTitle.trim() }));
     setNewListTitle('');
   };
 
   const handleDeleteList = (listId) => {
-    if (window.confirm("Are you sure you want to delete this whole column?")) {
+    if (window.confirm("Are you sure you want to delete this column?")) {
       dispatch(deleteListFromServer({ boardId, listId }));
     }
   };
 
-  const handleAddCard = (e, listId) => {
+  const handleAddCard = async (e, listId) => {
     e.preventDefault();
-    const cardText = newCardTexts[listId] || '';
-    if (!cardText.trim()) return;
-    dispatch(addCardToServer({ boardId, listId, cardText }));
-    setNewCardTexts({ ...newCardTexts, [listId]: '' });
+    const cardText = cardInputs[listId];
+    if (!cardText || !cardText.trim()) return;
+
+    await dispatch(addCardToServer({ boardId, listId, text: cardText.trim() }));
+    setCardInputs((prev) => ({ ...prev, [listId]: '' }));
+  };
+
+  const handleCardInputChange = (listId, value) => {
+    setCardInputs((prev) => ({ ...prev, [listId]: value }));
   };
 
   const handleDeleteCard = (listId, cardId) => {
     dispatch(deleteCardFromServer({ boardId, listId, cardId }));
   };
 
+  const handleMoveCard = (sourceListId, targetListId, cardId) => {
+    if (sourceListId === targetListId) return;
+    dispatch(moveCardOnServer({ boardId, sourceListId, targetListId, cardId }));
+  };
+
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-[#1a1b23] text-white flex flex-col items-center justify-center p-6">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-        <p className="text-xl font-medium text-gray-300">Retrieving workspace...</p>
+      <div className="min-h-screen bg-[#1a1b23] text-white flex items-center justify-center">
+        <p className="animate-pulse text-gray-400">Loading board...</p>
       </div>
     );
   }
 
-  if (status === 'failed') {
+  if (!activeBoard) {
     return (
-      <div className="min-h-screen bg-[#1a1b23] text-white flex flex-col items-center justify-center p-6">
-        <div className="bg-red-500/10 border border-red-500 p-6 rounded-2xl max-w-md text-center shadow-xl">
-          <h2 className="text-2xl font-bold text-red-500 mb-2">Connection Error</h2>
-          <p className="text-gray-400 mb-4">{error}</p>
-          <div className="flex gap-4 justify-center">
-            <button 
-              onClick={() => dispatch(fetchBoardById(boardId))}
-              className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg transition font-medium"
-            >
-              Retry
-            </button>
-            <Link to="/" className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition font-medium">
-              Go Home
-            </Link>
-          </div>
-        </div>
+      <div className="min-h-screen bg-[#1a1b23] text-white flex flex-col items-center justify-center gap-4">
+        <p className="text-red-400 font-semibold">Board not found.</p>
+        <Link to="/" className="text-blue-400 underline">← Back to Welcome</Link>
       </div>
     );
   }
-
-  if (!activeBoard) return null;
 
   return (
     <div className="min-h-screen bg-[#1a1b23] text-white p-8">
       {/* Header */}
-      <header className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <Link to="/" className="text-sm text-blue-400 hover:underline">← Back to Welcome</Link>
-          <h1 className="text-3xl font-extrabold tracking-tight mt-1">{activeBoard.title}</h1>
+          <Link to="/" className="text-blue-400 hover:underline text-sm mb-2 inline-block">
+            ← Back to Welcome
+          </Link>
+          <h1 className="text-4xl font-extrabold tracking-tight">{activeBoard.title}</h1>
         </div>
-        <span className="bg-emerald-500/10 text-emerald-400 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-500/20">
+        <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-4 py-1.5 rounded-full text-xs font-semibold">
           Connected to local db.json
         </span>
-      </header>
+      </div>
 
-      {/* Viewport */}
-      <div className="flex gap-6 items-start overflow-x-auto pb-6">
-        {/* Lists */}
-        {activeBoard.lists?.map((list) => (
-          <div key={list.id} className="bg-[#242630] w-80 p-4 rounded-xl flex-shrink-0 shadow-lg border border-gray-800/40">
-            <div className="flex justify-between items-center mb-3 border-b border-gray-800 pb-2">
-              <h3 className="font-bold text-lg text-gray-200">{list.title}</h3>
-              {/* Uses your new custom delete button component */}
-              <Button 
-                onClick={() => handleDeleteList(list.id)} 
-                title="Delete Column" 
-              />
+      {/* Board Columns */}
+      <div className="flex items-start gap-6 overflow-x-auto pb-6">
+        {activeBoard.lists && activeBoard.lists.map((list) => (
+          <div
+            key={list.id}
+            className="w-80 bg-[#242630] border border-gray-800 rounded-2xl p-5 flex-shrink-0 flex flex-col gap-4 shadow-xl"
+          >
+            {/* List Header */}
+            <div className="flex justify-between items-center pb-2 border-b border-gray-700/50">
+              <h2 className="font-bold text-lg text-gray-100">
+                {list.title || list.name || "Untitled Column"}
+              </h2>
+              <button
+                onClick={() => handleDeleteList(list.id)}
+                className="text-gray-500 hover:text-red-400 transition text-sm"
+                title="Delete List"
+              >
+                🗑️
+              </button>
             </div>
-            
-            {/* Cards */}
-            <div className="flex flex-col gap-2.5 mb-4 max-h-[50vh] overflow-y-auto">
-              {list.cards?.map((card) => (
-                <div key={card.id} className="bg-[#2e303f] p-3 rounded-lg border border-gray-700/50 shadow-sm text-gray-300 flex justify-between items-center group">
-                  <span className="break-all pr-2">{card.text}</span>
-                  {/* Uses your new custom delete button component with custom group-hover opacity */}
-                  <Button 
-                    onClick={() => handleDeleteCard(list.id, card.id)} 
-                    title="Delete Card"
-                    className="opacity-0 group-hover:opacity-100"
-                  />
+
+            {/* Cards Area */}
+            <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
+              {list.cards && list.cards.map((card) => (
+                <div
+                  key={card.id}
+                  className="bg-[#1a1b23] border border-gray-700/60 p-3.5 rounded-xl flex flex-col gap-3 group"
+                >
+                  <div className="flex justify-between items-start gap-2">
+                    <p className="text-sm text-gray-200 break-words">{card.text}</p>
+                    <button
+                      onClick={() => handleDeleteCard(list.id, card.id)}
+                      className="text-gray-500 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* Dropdown to Move Card to Another List */}
+                  {activeBoard.lists.length > 1 && (
+                    <div className="flex items-center gap-2 pt-2 border-t border-gray-800">
+                      <span className="text-[10px] uppercase font-semibold text-gray-500">Move to:</span>
+                      <select
+                        value={list.id}
+                        onChange={(e) => handleMoveCard(list.id, e.target.value, card.id)}
+                        className="bg-[#242630] text-xs text-gray-300 border border-gray-700 rounded px-2 py-1 focus:outline-none focus:border-blue-500 transition w-full cursor-pointer"
+                      >
+                        {activeBoard.lists.map((targetList) => (
+                          <option key={targetList.id} value={targetList.id}>
+                            {targetList.title || targetList.name || "Untitled"} {targetList.id === list.id ? "(Current)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
 
-            {/* New Card Form */}
-            <form onSubmit={(e) => handleAddCard(e, list.id)} className="flex flex-col gap-2">
+            {/* Add Card Form */}
+            <form onSubmit={(e) => handleAddCard(e, list.id)} className="flex flex-col gap-2 pt-2">
               <input
                 type="text"
                 placeholder="Add card text..."
-                value={newCardTexts[list.id] || ''}
-                onChange={(e) => setNewCardTexts({ ...newCardTexts, [list.id]: e.target.value })}
-                className="bg-[#1a1b23] border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                value={cardInputs[list.id] || ''}
+                onChange={(e) => handleCardInputChange(list.id, e.target.value)}
+                className="bg-[#1a1b23] border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
               />
-              <button type="submit" className="bg-blue-600 hover:bg-blue-500 py-1.5 rounded-lg text-xs font-semibold transition">
+              <button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-500 py-2 rounded-xl text-xs font-bold transition shadow-md shadow-blue-600/20"
+              >
                 + Add Card
               </button>
             </form>
           </div>
         ))}
 
-        {/* Add List Column */}
-        <div className="w-80 bg-[#242630]/40 border border-dashed border-gray-700 p-4 rounded-xl flex-shrink-0">
-          <h3 className="font-semibold text-gray-400 mb-3 text-sm">Create New Column</h3>
-          <form onSubmit={handleAddList} className="flex flex-col gap-2">
+        {/* Create New Column */}
+        <div className="w-80 bg-[#242630]/60 border border-dashed border-gray-700 rounded-2xl p-5 flex-shrink-0">
+          <h2 className="font-bold text-sm text-gray-400 mb-3">Create New Column</h2>
+          <form onSubmit={handleAddList} className="flex flex-col gap-3">
             <input
               type="text"
               placeholder="List title (e.g. Done)"
               value={newListTitle}
               onChange={(e) => setNewListTitle(e.target.value)}
-              className="bg-[#1a1b23] border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+              className="bg-[#1a1b23] border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
             />
-            <button type="submit" className="bg-gray-700 hover:bg-gray-600 py-1.5 rounded-lg text-xs font-semibold transition">
+            <button
+              type="submit"
+              className="bg-[#1a1b23] hover:bg-gray-800 border border-gray-700 py-2 rounded-xl text-xs font-semibold text-gray-300 hover:text-white transition"
+            >
               + Create List
             </button>
           </form>
